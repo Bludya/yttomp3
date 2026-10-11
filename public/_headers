@@ -6,3 +6,10 @@
 
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Keep the *.pages.dev copies out of Google; only ytomp4.com should be indexed.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.:project.pages.dev/*
+  X-Robots-Tag: noindex
