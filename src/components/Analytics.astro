@@ -1,0 +1,25 @@
+---
+// GA4 with Google Consent Mode v2 (advanced): gtag loads for everyone but
+// stays cookieless (denied) until the visitor accepts the consent banner.
+import { GA_ID } from '../site';
+---
+{GA_ID && (
+  <>
+    <script is:inline define:vars={{ GA_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      var stored = null;
+      try { stored = localStorage.getItem('ytomp4_consent'); } catch (e) {}
+      window.gtag('consent', 'default', {
+        analytics_storage: stored === 'granted' ? 'granted' : 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500,
+      });
+      window.gtag('js', new Date());
+      window.gtag('config', GA_ID);
+    </script>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
+  </>
+)}

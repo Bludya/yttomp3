@@ -28,6 +28,7 @@ const clientData = {
       id="yt-url"
       name="url"
       type="url"
+      dir="auto"
       inputmode="url"
       autocomplete="off"
       spellcheck="false"
@@ -192,6 +193,7 @@ const clientData = {
     if (!parsed) {
       form.classList.add('invalid');
       setStatus(data.errorInvalid, 'error');
+      (window as any).gtag?.('event', 'convert_invalid_url');
       input.focus();
       return;
     }
@@ -199,6 +201,8 @@ const clientData = {
     const label = quality.selectedOptions[0]?.textContent ?? quality.value;
     setStatus(data.pending.replace('{format}', format.toUpperCase()).replace('{quality}', label), 'info');
     convertBtn.disabled = true;
+
+    (window as any).gtag?.('event', 'convert_click', { format, quality: quality.value });
 
     // Backend hook: listen for this event (or replace this block) once the
     // conversion API exists.

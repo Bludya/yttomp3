@@ -15,6 +15,7 @@ const en = {
     formats: 'MP4 vs MP3',
     faq: 'FAQ',
     language: 'Language',
+    skip: 'Skip to content',
     soon: 'soon',
   },
 
@@ -350,6 +351,15 @@ const en = {
     ],
     rights: 'All rights reserved.',
     createdBy: 'Created by',
+  },
+
+  consent: {
+    label: 'Cookie consent',
+    text: 'We use Google Analytics cookies to understand how the converter is used and improve it. No ads, no tracking across sites.',
+    privacy: 'Privacy policy',
+    accept: 'Accept',
+    reject: 'Reject',
+    settings: 'Cookie settings',
   },
 
   schema: {

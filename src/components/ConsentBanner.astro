@@ -1,0 +1,48 @@
+---
+import { GA_ID } from '../site';
+import type { Dict } from '../i18n/en';
+
+interface Props {
+  dict: Dict;
+}
+const { dict } = Astro.props;
+const c = dict.consent;
+---
+{GA_ID && (
+  <div class="consent" id="consent" role="dialog" aria-live="polite" aria-label={c.label} hidden>
+    <p>{c.text} <a href="/privacy/">{c.privacy}</a></p>
+    <div class="consent-actions">
+      <button type="button" class="consent-btn secondary" data-consent="denied">{c.reject}</button>
+      <button type="button" class="consent-btn primary" data-consent="granted">{c.accept}</button>
+    </div>
+  </div>
+)}
+
+<script>
+  const KEY = 'ytomp4_consent';
+  const banner = document.getElementById('consent');
+
+  function read(): string | null {
+    try { return localStorage.getItem(KEY); } catch { return null; }
+  }
+
+  if (banner) {
+    if (!read()) banner.hidden = false;
+
+    banner.querySelectorAll<HTMLButtonElement>('[data-consent]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const choice = btn.dataset.consent!;
+        try { localStorage.setItem(KEY, choice); } catch {}
+        (window as any).gtag?.('consent', 'update', { analytics_storage: choice });
+        banner.hidden = true;
+      }),
+    );
+
+    document.querySelectorAll('[data-open-consent]').forEach((el) =>
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        banner.hidden = false;
+      }),
+    );
+  }
+</script>
