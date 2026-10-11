@@ -1,0 +1,228 @@
+---
+import Icon from './Icon.astro';
+import type { Dict } from '../i18n/en';
+
+interface Props {
+  dict: Dict;
+}
+const { dict } = Astro.props;
+const h = dict.hero;
+
+// Strings + option lists the client script needs, passed as one JSON blob.
+const clientData = {
+  mp4: h.mp4Qualities,
+  mp3: h.mp3Qualities,
+  soon: h.soon,
+  errorEmpty: h.errorEmpty,
+  errorInvalid: h.errorInvalid,
+  pending: h.pending,
+  comingSoon: h.comingSoon,
+  playlistDetected: h.playlistDetected,
+};
+---
+<form class="converter" id="converter" novalidate data-i18n={JSON.stringify(clientData)}>
+  <label class="sr-only" for="yt-url">{h.inputLabel}</label>
+  <div class="url-row">
+    <span class="url-icon"><Icon name="link" size={20} /></span>
+    <input
+      id="yt-url"
+      name="url"
+      type="url"
+      inputmode="url"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder={h.placeholder}
+      aria-describedby="conv-status"
+      required
+    />
+    <button type="button" class="ghost-btn" id="paste-btn">
+      <Icon name="clipboard" size={18} /><span>{h.paste}</span>
+    </button>
+    <button type="button" class="ghost-btn icon-only" id="clear-btn" aria-label={h.clear} hidden>
+      <Icon name="x" size={18} />
+    </button>
+  </div>
+
+  <div class="options-row">
+    <fieldset class="format-toggle">
+      <legend class="sr-only">{h.formatLabel}</legend>
+      <label><input type="radio" name="format" value="mp4" checked /><span>MP4</span></label>
+      <label><input type="radio" name="format" value="mp3" /><span>MP3</span></label>
+    </fieldset>
+
+    <label class="quality">
+      <span class="sr-only">{h.qualityLabel}</span>
+      <select id="quality" name="quality">
+        {h.mp4Qualities.map((q) => {
+          const available = 'available' in q && q.available;
+          return (
+            <option value={q.value} disabled={!available} selected={available}>
+              {available ? q.label : `${q.label} (${h.soon})`}
+            </option>
+          );
+        })}
+      </select>
+      <Icon name="chevron" size={16} />
+    </label>
+
+    <button type="submit" class="convert-btn" id="convert-btn">
+      <Icon name="download" size={20} /><span>{h.convert}</span>
+    </button>
+  </div>
+
+  <div class="preview" id="preview" hidden>
+    <img id="preview-img" alt="" width="160" height="90" decoding="async" />
+    <div>
+      <p class="preview-label"><Icon name="check" size={16} /> {h.preview}</p>
+      <p class="preview-id" id="preview-id"></p>
+    </div>
+  </div>
+
+  <p class="status" id="conv-status" role="status" aria-live="polite"></p>
+  <p class="disclaimer">{h.disclaimer}</p>
+</form>
+
+<script>
+  type Q = { value: string; label: string; available?: boolean };
+  type Parsed = { id: string | null; list: string | null };
+
+  const form = document.getElementById('converter') as HTMLFormElement;
+  const data = JSON.parse(form.dataset.i18n!) as {
+    mp4: Q[]; mp3: Q[]; soon: string;
+    errorEmpty: string; errorInvalid: string; pending: string;
+    comingSoon: string; playlistDetected: string;
+  };
+  const input = form.querySelector<HTMLInputElement>('#yt-url')!;
+  const quality = form.querySelector<HTMLSelectElement>('#quality')!;
+  const status = form.querySelector<HTMLParagraphElement>('#conv-status')!;
+  const preview = form.querySelector<HTMLDivElement>('#preview')!;
+  const previewImg = form.querySelector<HTMLImageElement>('#preview-img')!;
+  const previewId = form.querySelector<HTMLParagraphElement>('#preview-id')!;
+  const pasteBtn = form.querySelector<HTMLButtonElement>('#paste-btn')!;
+  const clearBtn = form.querySelector<HTMLButtonElement>('#clear-btn')!;
+  const convertBtn = form.querySelector<HTMLButtonElement>('#convert-btn')!;
+
+  // Accepts watch, youtu.be, shorts, embed, live, music., m. and playlist links.
+  function parseYouTube(raw: string): Parsed | null {
+    let s = raw.trim();
+    if (!s) return null;
+    if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+    let u: URL;
+    try { u = new URL(s); } catch { return null; }
+    const host = u.hostname.toLowerCase().replace(/^(www|m|music)\./, '');
+    let id: string | null = null;
+    if (host === 'youtu.be') {
+      id = u.pathname.slice(1).split('/')[0];
+    } else if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+      if (u.pathname === '/watch') id = u.searchParams.get('v');
+      else id = u.pathname.match(/^\/(?:shorts|embed|live|v)\/([^/?#]+)/)?.[1] ?? null;
+    } else {
+      return null;
+    }
+    const list = u.searchParams.get('list');
+    if (id && /^[\w-]{11}$/.test(id)) return { id, list };
+    if (list && u.pathname === '/playlist') return { id: null, list };
+    return null;
+  }
+
+  function currentFormat(): 'mp4' | 'mp3' {
+    return (form.querySelector<HTMLInputElement>('input[name="format"]:checked')!.value as 'mp4' | 'mp3');
+  }
+
+  function fillQualities() {
+    const opts = data[currentFormat()];
+    quality.replaceChildren(
+      ...opts.map((q) => {
+        const o = new Option(q.available ? q.label : `${q.label} (${data.soon})`, q.value);
+        o.disabled = !q.available;
+        o.selected = !!q.available;
+        return o;
+      }),
+    );
+  }
+
+  function setStatus(msg: string, kind: '' | 'error' | 'info' | 'ok' = '') {
+    status.textContent = msg;
+    status.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function updatePreview() {
+    const parsed = parseYouTube(input.value);
+    clearBtn.hidden = !input.value;
+    form.classList.toggle('invalid', false);
+    if (parsed?.id) {
+      previewImg.src = `https://i.ytimg.com/vi/${parsed.id}/mqdefault.jpg`;
+      previewId.textContent = `youtu.be/${parsed.id}`;
+      preview.hidden = false;
+    } else {
+      preview.hidden = true;
+    }
+    if (parsed?.list) setStatus(data.playlistDetected, 'info');
+    else if (status.classList.contains('info') || status.classList.contains('error')) setStatus('');
+  }
+
+  input.addEventListener('input', updatePreview);
+  form.querySelectorAll('input[name="format"]').forEach((r) => r.addEventListener('change', fillQualities));
+
+  pasteBtn.addEventListener('click', async () => {
+    try {
+      input.value = (await navigator.clipboard.readText()).trim();
+      updatePreview();
+    } catch {
+      input.focus();
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    setStatus('');
+    updatePreview();
+    input.focus();
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!input.value.trim()) {
+      form.classList.add('invalid');
+      setStatus(data.errorEmpty, 'error');
+      input.focus();
+      return;
+    }
+    const parsed = parseYouTube(input.value);
+    if (!parsed) {
+      form.classList.add('invalid');
+      setStatus(data.errorInvalid, 'error');
+      input.focus();
+      return;
+    }
+    const format = currentFormat();
+    const label = quality.selectedOptions[0]?.textContent ?? quality.value;
+    setStatus(data.pending.replace('{format}', format.toUpperCase()).replace('{quality}', label), 'info');
+    convertBtn.disabled = true;
+
+    // Backend hook: listen for this event (or replace this block) once the
+    // conversion API exists.
+    form.dispatchEvent(
+      new CustomEvent('ytomp4:convert', {
+        bubbles: true,
+        detail: { url: input.value.trim(), id: parsed.id, list: parsed.list, format, quality: quality.value },
+      }),
+    );
+
+    setTimeout(() => {
+      convertBtn.disabled = false;
+      setStatus(data.comingSoon, 'ok');
+    }, 900);
+  });
+
+  // Deep links: /?url=…&format=mp3
+  const params = new URLSearchParams(location.search);
+  if (params.get('format') === 'mp3') {
+    form.querySelector<HTMLInputElement>('input[value="mp3"]')!.checked = true;
+    fillQualities();
+  }
+  if (params.get('url')) {
+    input.value = params.get('url')!;
+    updatePreview();
+  }
+</script>

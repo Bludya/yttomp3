@@ -1,0 +1,20 @@
+---
+import Base from './Base.astro';
+import en from '../i18n/en';
+
+interface Props {
+  title: string;
+  description: string;
+  updated: string;
+}
+const { title, description, updated } = Astro.props;
+---
+<Base lang="en" dict={en} title={`${title} | YToMP4`} description={description}>
+  <article class="section legal">
+    <div class="container narrow">
+      <h1>{title}</h1>
+      <p class="muted">Last updated: {updated}</p>
+      <slot />
+    </div>
+  </article>
+</Base>

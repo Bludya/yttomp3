@@ -1,0 +1,261 @@
+---
+import Base from '../layouts/Base.astro';
+import Converter from './Converter.astro';
+import Icon from './Icon.astro';
+import { t } from '../i18n';
+import { getLocale, localePath } from '../i18n/locales';
+
+interface Props {
+  lang: string;
+}
+const { lang } = Astro.props;
+const d = t(lang);
+const locale = getLocale(lang);
+const site = Astro.site!.origin;
+const url = new URL(localePath(lang), site).href;
+
+const allFaq = d.faq.groups.flatMap((g) => g.items);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${site}/#org`,
+      name: 'YToMP4',
+      url: `${site}/`,
+      logo: `${site}/favicon.svg`,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${site}/#website`,
+      name: 'YToMP4',
+      url: `${site}/`,
+      publisher: { '@id': `${site}/#org` },
+      inLanguage: locale.hreflang,
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${url}#webpage`,
+      url,
+      name: d.meta.title,
+      description: d.meta.description,
+      isPartOf: { '@id': `${site}/#website` },
+      about: { '@id': `${url}#app` },
+      inLanguage: locale.hreflang,
+    },
+    {
+      '@type': 'WebApplication',
+      '@id': `${url}#app`,
+      name: d.schema.appName,
+      url,
+      applicationCategory: d.schema.category,
+      operatingSystem: 'Any (web browser)',
+      browserRequirements: 'Requires JavaScript and HTML5',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      featureList: d.schema.features,
+      inLanguage: locale.hreflang,
+      publisher: { '@id': `${site}/#org` },
+    },
+    {
+      '@type': 'HowTo',
+      '@id': `${url}#howto`,
+      name: d.howTo.h2,
+      description: d.howTo.intro,
+      totalTime: d.howTo.totalTime,
+      tool: { '@type': 'HowToTool', name: 'YToMP4' },
+      step: d.howTo.steps.map((s, i) => ({
+        '@type': 'HowToStep',
+        position: i + 1,
+        name: s.name,
+        text: s.text,
+        url: `${url}#step-${i + 1}`,
+      })),
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${url}#faq`,
+      mainEntity: allFaq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+};
+---
+<Base lang={lang} dict={d} title={d.meta.title} description={d.meta.description} jsonLd={jsonLd} multilingual>
+  <section class="hero" id="top">
+    <div class="container hero-inner">
+      <p class="eyebrow">{d.hero.eyebrow}</p>
+      <h1>{d.hero.h1}</h1>
+      <p class="lead">{d.hero.sub}</p>
+      <Converter dict={d} />
+      <ul class="trust">
+        {d.hero.trust.map((item) => <li><Icon name="check" size={16} />{item}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="features" aria-labelledby="features-h">
+    <div class="container">
+      <h2 id="features-h">{d.features.h2}</h2>
+      <p class="section-intro">{d.features.intro}</p>
+      <div class="grid grid-3">
+        {d.features.items.map((f) => (
+          <article class="card">
+            <span class="card-icon"><Icon name={f.icon} /></span>
+            <h3>{f.h3}</h3>
+            <p>{f.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="how-to" aria-labelledby="howto-h">
+    <div class="container">
+      <h2 id="howto-h">{d.howTo.h2}</h2>
+      <p class="section-intro">{d.howTo.intro}</p>
+      <ol class="steps">
+        {d.howTo.steps.map((s, i) => (
+          <li id={`step-${i + 1}`}>
+            <span class="step-num" aria-hidden="true">{i + 1}</span>
+            <h3>{s.name}</h3>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="formats" aria-labelledby="formats-h">
+    <div class="container narrow">
+      <h2 id="formats-h">{d.formats.h2}</h2>
+      <p class="section-intro">{d.formats.intro}</p>
+      <div class="table-wrap">
+        <table class="compare-table">
+          <thead><tr>{d.formats.headers.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+          <tbody>
+            {d.formats.rows.map(([label, ...cells]) => (
+              <tr><th scope="row">{label}</th>{cells.map((c) => <td>{c}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>{d.formats.outro}</p>
+    </div>
+  </section>
+
+  <section class="section alt" id="quality" aria-labelledby="quality-h">
+    <div class="container">
+      <h2 id="quality-h">{d.quality.h2}</h2>
+      <p class="section-intro">{d.quality.intro}</p>
+      <div class="grid grid-2 quality-grid">
+        <div class="table-wrap">
+          <table>
+            <caption>{d.quality.mp4Caption}</caption>
+            <thead><tr>{d.quality.mp4Headers.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+            <tbody>
+              {d.quality.mp4Rows.map(([res, ...cells]) => (
+                <tr><th scope="row">{res}</th>{cells.map((c) => <td>{c}</td>)}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>{d.quality.mp3Caption}</caption>
+            <thead><tr>{d.quality.mp3Headers.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+            <tbody>
+              {d.quality.mp3Rows.map(([br, ...cells]) => (
+                <tr><th scope="row">{br}</th>{cells.map((c) => <td>{c}</td>)}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="note">{d.quality.note}</p>
+    </div>
+  </section>
+
+  <section class="section" id="devices" aria-labelledby="devices-h">
+    <div class="container">
+      <h2 id="devices-h">{d.devices.h2}</h2>
+      <p class="section-intro">{d.devices.intro}</p>
+      <div class="grid grid-devices">
+        {d.devices.items.map((item) => (
+          <article class="card compact">
+            <span class="card-icon"><Icon name={item.icon} /></span>
+            <h3>{item.h3}</h3>
+            <p>{item.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="use-cases" aria-labelledby="usecases-h">
+    <div class="container">
+      <h2 id="usecases-h">{d.useCases.h2}</h2>
+      <div class="grid grid-3 use-cases">
+        {d.useCases.items.map((u) => (
+          <article>
+            <h3>{u.h3}</h3>
+            <p>{u.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="compare" aria-labelledby="compare-h">
+    <div class="container narrow">
+      <h2 id="compare-h">{d.compare.h2}</h2>
+      <p class="section-intro">{d.compare.intro}</p>
+      <div class="table-wrap">
+        <table class="compare-table highlight-first">
+          <thead><tr>{d.compare.headers.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+          <tbody>
+            {d.compare.rows.map(([label, ...cells]) => (
+              <tr><th scope="row">{label}</th>{cells.map((c) => <td>{c}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="faq" aria-labelledby="faq-h">
+    <div class="container narrow">
+      <h2 id="faq-h">{d.faq.h2}</h2>
+      {d.faq.groups.map((g) => (
+        <div class="faq-group">
+          <h3>{g.name}</h3>
+          {g.items.map((f) => (
+            <details class="faq-item">
+              <summary>{f.q}<Icon name="chevron" size={18} /></summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="container cta-inner">
+      <h2>{d.cta.h2}</h2>
+      <p>{d.cta.text}</p>
+      <a class="convert-btn" href="#top" data-focus-input>
+        <Icon name="download" size={20} /><span>{d.cta.button}</span>
+      </a>
+    </div>
+  </section>
+</Base>
+
+<script>
+  document.querySelector('[data-focus-input]')?.addEventListener('click', () => {
+    setTimeout(() => document.getElementById('yt-url')?.focus({ preventScroll: true }), 400);
+  });
+</script>

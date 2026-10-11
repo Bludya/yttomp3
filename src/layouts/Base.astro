@@ -1,0 +1,110 @@
+---
+import '../styles/global.css';
+import Icon from '../components/Icon.astro';
+import { locales, enabledLocales, getLocale, localePath, defaultLocale } from '../i18n/locales';
+import type { Dict } from '../i18n/en';
+
+interface Props {
+  lang: string;
+  dict: Dict;
+  title: string;
+  description: string;
+  jsonLd?: object;
+  /** Legal pages exist only in English and are not translated. */
+  multilingual?: boolean;
+}
+
+const { lang, dict, title, description, jsonLd, multilingual = false } = Astro.props;
+const locale = getLocale(lang);
+const site = Astro.site!.origin;
+const canonical = new URL(Astro.url.pathname, site).href;
+const home = localePath(lang);
+---
+<!doctype html>
+<html lang={locale.hreflang} dir={locale.dir}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {multilingual && enabledLocales.map((l) => (
+      <link rel="alternate" hreflang={l.hreflang} href={new URL(localePath(l.code), site).href} />
+    ))}
+    {multilingual && (
+      <link rel="alternate" hreflang="x-default" href={new URL(localePath(defaultLocale), site).href} />
+    )}
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="YToMP4" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale.ogLocale} />
+    <meta name="twitter:card" content="summary" />
+
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="logo" href={home} aria-label="YToMP4 home">
+          <img src="/favicon.svg" alt="" width="30" height="30" />
+          <span>YTo<b>MP4</b></span>
+        </a>
+        <nav class="main-nav" aria-label="Main">
+          <a href={`${home}#features`}>{dict.nav.features}</a>
+          <a href={`${home}#how-to`}>{dict.nav.howTo}</a>
+          <a href={`${home}#formats`}>{dict.nav.formats}</a>
+          <a href={`${home}#faq`}>{dict.nav.faq}</a>
+        </nav>
+        <details class="lang-switch">
+          <summary aria-label={dict.nav.language}>
+            <Icon name="globe" size={18} /><span>{locale.code.toUpperCase()}</span>
+          </summary>
+          <ul>
+            {locales.map((l) => (
+              <li>
+                {l.enabled ? (
+                  <a href={localePath(l.code)} hreflang={l.hreflang} lang={l.hreflang} aria-current={l.code === lang ? 'true' : undefined}>
+                    {l.name}
+                  </a>
+                ) : (
+                  <span class="disabled" lang={l.hreflang}>{l.name} <small>{dict.nav.soon}</small></span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <a class="logo" href={home}>
+            <img src="/favicon.svg" alt="" width="26" height="26" loading="lazy" />
+            <span>YTo<b>MP4</b></span>
+          </a>
+          <p>{dict.footer.about}</p>
+        </div>
+        <nav aria-label="Footer">
+          <ul>
+            {dict.footer.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+          </ul>
+        </nav>
+      </div>
+      <div class="container footer-bottom">
+        <p>© {new Date().getFullYear()} ytomp4.com. {dict.footer.rights}</p>
+      </div>
+    </footer>
+  </body>
+</html>

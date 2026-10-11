@@ -1,0 +1,13 @@
+---
+import Home from '../../components/Home.astro';
+import { enabledLocales, defaultLocale } from '../../i18n/locales';
+
+export function getStaticPaths() {
+  return enabledLocales
+    .filter((l) => l.code !== defaultLocale)
+    .map((l) => ({ params: { lang: l.code } }));
+}
+
+const { lang } = Astro.params;
+---
+<Home lang={lang!} />
