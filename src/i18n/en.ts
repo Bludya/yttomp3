@@ -346,9 +346,10 @@ const en = {
       { href: '/privacy/', label: 'Privacy' },
       { href: '/terms/', label: 'Terms' },
       { href: '/dmca/', label: 'Copyright / DMCA' },
-      { href: 'mailto:contact@ytomp4.com', label: 'Contact' },
+      { href: '/contact/', label: 'Contact' },
     ],
     rights: 'All rights reserved.',
+    createdBy: 'Created by',
   },
 
   schema: {

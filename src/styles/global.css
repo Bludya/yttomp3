@@ -280,3 +280,9 @@ tbody th { font-weight: 600; white-space: nowrap; }
 .site-footer a:not(.logo):hover { color: var(--text); }
 .footer-bottom { border-top: 1px solid var(--border); margin-top: 32px; padding-block: 18px; }
 .footer-bottom p { margin: 0; max-width: none; }
+
+.contact-topics { list-style: none; padding: 0; display: grid; gap: 12px; }
+.contact-topics li { display: grid; gap: 4px; padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.contact-topics span { color: var(--text-muted); }
+.footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.site-footer .footer-bottom a { color: var(--primary); }

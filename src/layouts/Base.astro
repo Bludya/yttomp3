@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Icon from '../components/Icon.astro';
 import { locales, enabledLocales, getLocale, localePath, defaultLocale } from '../i18n/locales';
 import type { Dict } from '../i18n/en';
+import { CREATOR } from '../site';
 
 interface Props {
   lang: string;
@@ -104,6 +105,7 @@ const home = localePath(lang);
       </div>
       <div class="container footer-bottom">
         <p>© {new Date().getFullYear()} ytomp4.com. {dict.footer.rights}</p>
+        <p>{dict.footer.createdBy} <a href={CREATOR.url}>{CREATOR.name}</a></p>
       </div>
     </footer>
   </body>

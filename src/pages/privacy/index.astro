@@ -1,5 +1,6 @@
 ---
 import Legal from '../../layouts/Legal.astro';
+import { CONTACT_EMAIL } from '../../site';
 ---
 <Legal title="Privacy Policy" description="How YToMP4 handles your data: no accounts, no conversion history, temporary files deleted automatically." updated="October 11, 2026">
   <p>YToMP4 ("we", "us") operates ytomp4.com. This policy explains what information we process when you use the YouTube to MP4 and MP3 converter.</p>
@@ -17,5 +18,5 @@ import Legal from '../../layouts/Legal.astro';
   <h2>Cookies</h2>
   <p>The converter works without cookies. If we add analytics or advertising in the future, this policy will be updated and, where required, we will ask for your consent.</p>
   <h2>Contact</h2>
-  <p>Questions about privacy: <a href="mailto:contact@ytomp4.com">contact@ytomp4.com</a>.</p>
+  <p>Questions about privacy: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
 </Legal>

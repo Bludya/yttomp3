@@ -1,0 +1,24 @@
+---
+import Legal from '../../layouts/Legal.astro';
+import { CONTACT_EMAIL } from '../../site';
+
+const topics = [
+  { subject: 'Support', title: 'Help with a conversion', text: 'Include the YouTube link, the format (MP4 or MP3), the quality you picked, and your device and browser.' },
+  { subject: 'Feedback', title: 'Feedback & feature requests', text: 'Tell us what you would like YToMP4 to do better.' },
+  { subject: 'DMCA notice', title: 'Copyright / DMCA', text: 'Rights holders: see our Copyright & DMCA page for what to include in a notice.' },
+  { subject: 'Business', title: 'Business & partnerships', text: 'Advertising, partnerships and other business enquiries.' },
+];
+---
+<Legal title="Contact" description="Contact YToMP4 for support, feedback, copyright notices or business enquiries.">
+  <p>The fastest way to reach us is by email: <a href={`mailto:${CONTACT_EMAIL}`}><strong>{CONTACT_EMAIL}</strong></a>. We usually reply within 2 business days.</p>
+  <h2>What can we help with?</h2>
+  <ul class="contact-topics">
+    {topics.map((t) => (
+      <li>
+        <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.subject)}`}><strong>{t.title}</strong></a>
+        <span>{t.text}</span>
+      </li>
+    ))}
+  </ul>
+  <p class="muted">YToMP4 is not affiliated with YouTube or Google. For problems with your YouTube account, contact YouTube Help.</p>
+</Legal>

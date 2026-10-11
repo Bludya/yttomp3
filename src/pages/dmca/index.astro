@@ -1,9 +1,10 @@
 ---
 import Legal from '../../layouts/Legal.astro';
+import { CONTACT_EMAIL } from '../../site';
 ---
 <Legal title="Copyright & DMCA" description="How rights holders can contact YToMP4 about copyrighted content." updated="October 11, 2026">
   <p>YToMP4 respects the rights of creators. We do not host a library of videos or music; files are generated on request from links provided by users and deleted automatically shortly afterwards.</p>
-  <p>If you are a copyright owner or an authorised agent and believe our service is being used to infringe your rights, send a notice to <a href="mailto:dmca@ytomp4.com">dmca@ytomp4.com</a> including:</p>
+  <p>If you are a copyright owner or an authorised agent and believe our service is being used to infringe your rights, send a notice to <a href={`mailto:${CONTACT_EMAIL}?subject=DMCA%20notice`}>{CONTACT_EMAIL}</a> (subject: "DMCA notice") including:</p>
   <ul>
     <li>identification of the copyrighted work;</li>
     <li>the URL(s) of the content concerned;</li>
